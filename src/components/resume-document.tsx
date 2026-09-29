@@ -228,7 +228,7 @@ function Section({
             <div key={item.id} style={{ marginTop: 6 }}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
                 <span style={{ fontWeight: 700 }}>{item.role || "Role"}</span>
-                <span style={{ color: "#5b6舒" as unknown as string, whiteSpace: "nowrap", fontSize: "0.9em" }}>
+                <span style={{ color: "#5b6478", whiteSpace: "nowrap", fontSize: "0.9em" }}>
                   {dateRange(item.start, item.end, item.current)}
                 </span>
               </div>
@@ -252,7 +252,7 @@ function Section({
             <div key={item.id} style={{ marginTop: 6 }}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
                 <span style={{ fontWeight: 700 }}>{item.degree || "Qualification"}</span>
-                <span style={{ whiteSpace: "nowrap", fontSize: "0.9em", color: "#5b6舒" as unknown as string }}>
+                <span style={{ whiteSpace: "nowrap", fontSize: "0.9em", color: "#5b6478" }}>
                   {dateRange(item.start, item.end)}
                 </span>
               </div>
