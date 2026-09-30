@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as BuilderRouteImport } from './routes/builder'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as BuilderIndexRouteImport } from './routes/builder.index'
+import { Route as BuilderIdRouteImport } from './routes/builder.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -34,16 +35,23 @@ const BuilderIndexRoute = BuilderIndexRouteImport.update({
   path: '/',
   getParentRoute: () => BuilderRoute,
 } as any)
+const BuilderIdRoute = BuilderIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => BuilderRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/builder': typeof BuilderRouteWithChildren
   '/profile': typeof ProfileRoute
+  '/builder/$id': typeof BuilderIdRoute
   '/builder/': typeof BuilderIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/profile': typeof ProfileRoute
+  '/builder/$id': typeof BuilderIdRoute
   '/builder': typeof BuilderIndexRoute
 }
 export interface FileRoutesById {
@@ -51,14 +59,15 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/builder': typeof BuilderRouteWithChildren
   '/profile': typeof ProfileRoute
+  '/builder/$id': typeof BuilderIdRoute
   '/builder/': typeof BuilderIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/builder' | '/profile' | '/builder/'
+  fullPaths: '/' | '/builder' | '/profile' | '/builder/$id' | '/builder/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/profile' | '/builder'
-  id: '__root__' | '/' | '/builder' | '/profile' | '/builder/'
+  to: '/' | '/profile' | '/builder/$id' | '/builder'
+  id: '__root__' | '/' | '/builder' | '/profile' | '/builder/$id' | '/builder/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -97,14 +106,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BuilderIndexRouteImport
       parentRoute: typeof BuilderRoute
     }
+    '/builder/$id': {
+      id: '/builder/$id'
+      path: '/$id'
+      fullPath: '/builder/$id'
+      preLoaderRoute: typeof BuilderIdRouteImport
+      parentRoute: typeof BuilderRoute
+    }
   }
 }
 
 interface BuilderRouteChildren {
+  BuilderIdRoute: typeof BuilderIdRoute
   BuilderIndexRoute: typeof BuilderIndexRoute
 }
 
 const BuilderRouteChildren: BuilderRouteChildren = {
+  BuilderIdRoute: BuilderIdRoute,
   BuilderIndexRoute: BuilderIndexRoute,
 }
 
