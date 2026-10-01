@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BuilderRouteImport } from './routes/builder'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as TemplatesRouteImport } from './routes/templates'
 import { Route as BuilderIndexRouteImport } from './routes/builder.index'
 import { Route as BuilderIdRouteImport } from './routes/builder.$id'
 
@@ -30,6 +31,11 @@ const ProfileRoute = ProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TemplatesRoute = TemplatesRouteImport.update({
+  id: '/templates',
+  path: '/templates',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BuilderIndexRoute = BuilderIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -45,12 +51,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/builder': typeof BuilderRouteWithChildren
   '/profile': typeof ProfileRoute
+  '/templates': typeof TemplatesRoute
   '/builder/$id': typeof BuilderIdRoute
   '/builder/': typeof BuilderIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/profile': typeof ProfileRoute
+  '/templates': typeof TemplatesRoute
   '/builder/$id': typeof BuilderIdRoute
   '/builder': typeof BuilderIndexRoute
 }
@@ -59,21 +67,31 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/builder': typeof BuilderRouteWithChildren
   '/profile': typeof ProfileRoute
+  '/templates': typeof TemplatesRoute
   '/builder/$id': typeof BuilderIdRoute
   '/builder/': typeof BuilderIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/builder' | '/profile' | '/builder/$id' | '/builder/'
+  fullPaths:
+    '/' | '/builder' | '/profile' | '/templates' | '/builder/$id' | '/builder/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/profile' | '/builder/$id' | '/builder'
-  id: '__root__' | '/' | '/builder' | '/profile' | '/builder/$id' | '/builder/'
+  to: '/' | '/profile' | '/templates' | '/builder/$id' | '/builder'
+  id:
+    | '__root__'
+    | '/'
+    | '/builder'
+    | '/profile'
+    | '/templates'
+    | '/builder/$id'
+    | '/builder/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BuilderRoute: typeof BuilderRouteWithChildren
   ProfileRoute: typeof ProfileRoute
+  TemplatesRoute: typeof TemplatesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -97,6 +115,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/templates': {
+      id: '/templates'
+      path: '/templates'
+      fullPath: '/templates'
+      preLoaderRoute: typeof TemplatesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/builder/': {
@@ -133,6 +158,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BuilderRoute: BuilderRouteWithChildren,
   ProfileRoute: ProfileRoute,
+  TemplatesRoute: TemplatesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
