@@ -10,14 +10,21 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AnalyzerRouteImport } from './routes/analyzer'
 import { Route as BuilderRouteImport } from './routes/builder'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as TemplatesRouteImport } from './routes/templates'
 import { Route as BuilderIndexRouteImport } from './routes/builder.index'
 import { Route as BuilderIdRouteImport } from './routes/builder.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnalyzerRoute = AnalyzerRouteImport.update({
+  id: '/analyzer',
+  path: '/analyzer',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BuilderRoute = BuilderRouteImport.update({
@@ -28,6 +35,11 @@ const BuilderRoute = BuilderRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TemplatesRoute = TemplatesRouteImport.update({
+  id: '/templates',
+  path: '/templates',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BuilderIndexRoute = BuilderIndexRouteImport.update({
@@ -43,37 +55,61 @@ const BuilderIdRoute = BuilderIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/analyzer': typeof AnalyzerRoute
   '/builder': typeof BuilderRouteWithChildren
   '/profile': typeof ProfileRoute
+  '/templates': typeof TemplatesRoute
   '/builder/$id': typeof BuilderIdRoute
   '/builder/': typeof BuilderIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/analyzer': typeof AnalyzerRoute
   '/profile': typeof ProfileRoute
+  '/templates': typeof TemplatesRoute
   '/builder/$id': typeof BuilderIdRoute
   '/builder': typeof BuilderIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/analyzer': typeof AnalyzerRoute
   '/builder': typeof BuilderRouteWithChildren
   '/profile': typeof ProfileRoute
+  '/templates': typeof TemplatesRoute
   '/builder/$id': typeof BuilderIdRoute
   '/builder/': typeof BuilderIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/builder' | '/profile' | '/builder/$id' | '/builder/'
+  fullPaths:
+    | '/'
+    | '/analyzer'
+    | '/builder'
+    | '/profile'
+    | '/templates'
+    | '/builder/$id'
+    | '/builder/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/profile' | '/builder/$id' | '/builder'
-  id: '__root__' | '/' | '/builder' | '/profile' | '/builder/$id' | '/builder/'
+  to:
+    '/' | '/analyzer' | '/profile' | '/templates' | '/builder/$id' | '/builder'
+  id:
+    | '__root__'
+    | '/'
+    | '/analyzer'
+    | '/builder'
+    | '/profile'
+    | '/templates'
+    | '/builder/$id'
+    | '/builder/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AnalyzerRoute: typeof AnalyzerRoute
   BuilderRoute: typeof BuilderRouteWithChildren
   ProfileRoute: typeof ProfileRoute
+  TemplatesRoute: typeof TemplatesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -83,6 +119,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/analyzer': {
+      id: '/analyzer'
+      path: '/analyzer'
+      fullPath: '/analyzer'
+      preLoaderRoute: typeof AnalyzerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/builder': {
@@ -97,6 +140,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/templates': {
+      id: '/templates'
+      path: '/templates'
+      fullPath: '/templates'
+      preLoaderRoute: typeof TemplatesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/builder/': {
@@ -131,8 +181,10 @@ const BuilderRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AnalyzerRoute: AnalyzerRoute,
   BuilderRoute: BuilderRouteWithChildren,
   ProfileRoute: ProfileRoute,
+  TemplatesRoute: TemplatesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
