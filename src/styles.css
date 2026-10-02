@@ -159,11 +159,31 @@
   background: #ffffff;
   color: #10151f;
   box-shadow: 0 24px 60px -30px rgba(30, 41, 59, 0.5);
+  overflow-wrap: anywhere;
+  /* page-break guide every A4 page height (screen only) */
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent calc(297mm - 1px),
+    rgba(79, 70, 229, 0.35) calc(297mm - 1px),
+    rgba(79, 70, 229, 0.35) 297mm
+  );
 }
 
 .doc-page.letter {
   width: 216mm;
   min-height: 279mm;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent calc(279mm - 1px),
+    rgba(79, 70, 229, 0.35) calc(279mm - 1px),
+    rgba(79, 70, 229, 0.35) 279mm
+  );
+}
+
+.doc-entry {
+  break-inside: avoid;
 }
 
 @media print {
