@@ -95,6 +95,13 @@ function Editor() {
   const [zoom, setZoom] = useState(0.72);
   const history = useRef<{ past: Resume[]; future: Resume[] }>({ past: [], future: [] });
   const [, force] = useState(0);
+  const [saveState, setSaveState] = useState<"saved" | "saving">("saved");
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const markSaving = useCallback(() => {
+    setSaveState("saving");
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => setSaveState("saved"), 500);
+  }, []);
 
   const commit = useCallback(
     (fn: (r: Resume) => Resume, record = true) => {
@@ -109,8 +116,9 @@ function Editor() {
         const next = { ...fn(current), updatedAt: Date.now() };
         return { ...d, resumes: d.resumes.map((r) => (r.id === id ? next : r)) };
       });
+      markSaving();
     },
-    [id],
+    [id, markSaving],
   );
 
   const undo = () => {
@@ -167,6 +175,7 @@ function Editor() {
         redo={redo}
         zoom={zoom}
         setZoom={setZoom}
+        saveState={saveState}
       />
 
       <div className="mt-4 grid min-h-0 flex-1 gap-4 lg:grid-cols-[minmax(0,420px)_1fr]">
@@ -217,7 +226,9 @@ function Toolbar({
   redo,
   zoom,
   setZoom,
+  saveState,
 }: {
+  saveState: "saved" | "saving";
   resume: Resume;
   commit: (fn: (r: Resume) => Resume, record?: boolean) => void;
   undo: () => void;
@@ -256,6 +267,7 @@ function Toolbar({
       <Input
         className="glass-input h-9 w-56"
         value={resume.name}
+        aria-label="Resume name"
         onChange={(e) => commit((r) => ({ ...r, name: e.target.value }), false)}
       />
       <Button size="sm" variant="ghost" onClick={undo} title="Undo">
@@ -273,7 +285,12 @@ function Toolbar({
       </Button>
 
       <span className="ml-auto flex flex-wrap items-center gap-2">
-        <span className="text-[11px] text-muted-foreground">Saved automatically</span>
+        <span
+          className={`text-[11px] font-medium ${saveState === "saving" ? "text-warning" : "text-success"}`}
+          aria-live="polite"
+        >
+          {saveState === "saving" ? "Saving…" : "Saved"}
+        </span>
         <Select value={language} onValueChange={setLanguage}>
           <SelectTrigger className="glass-input h-9 w-32">
             <SelectValue />
@@ -338,6 +355,7 @@ function HeaderEditor({
                 website: profile.website,
                 linkedin: profile.linkedin,
                 github: profile.github,
+                photo: profile.photo,
               },
             }))
           }
@@ -349,11 +367,11 @@ function HeaderEditor({
         {(
           [
             ["fullName", "Full name"],
-            ["headline", "Headline"],
+            ["headline", "Professional title"],
             ["email", "Email"],
             ["phone", "Phone"],
             ["location", "Location"],
-            ["website", "Website"],
+            ["website", "Portfolio"],
             ["linkedin", "LinkedIn"],
             ["github", "GitHub"],
           ] as const
@@ -362,11 +380,57 @@ function HeaderEditor({
             <Label>{label}</Label>
             <Input
               className="glass-input mt-1 h-9"
-              value={resume.header[key]}
+              value={resume.header[key] ?? ""}
+              aria-invalid={!!headerError(key, resume.header[key] ?? "")}
               onChange={(e) => set(key, e.target.value)}
             />
+            {headerError(key, resume.header[key] ?? "") ? (
+              <p className="mt-0.5 text-[11px] text-destructive">
+                {headerError(key, resume.header[key] ?? "")}
+              </p>
+            ) : null}
           </div>
         ))}
+      </div>
+      <div className="mt-3 flex items-center gap-3">
+        {resume.header.photo ? (
+          <img src={resume.header.photo} alt="Profile" className="size-12 rounded-full object-cover" />
+        ) : null}
+        <label className="cursor-pointer text-xs font-medium text-primary">
+          {resume.header.photo ? "Change photo" : "Add profile photo"}
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              if (file.size > 1_500_000) {
+                toast.error("Please choose an image under 1.5 MB.");
+                return;
+              }
+              const reader = new FileReader();
+              reader.onload = () => {
+                commit((r) => ({
+                  ...r,
+                  header: { ...r.header, photo: String(reader.result) },
+                  design: { ...r.design, showPhoto: true },
+                }));
+              };
+              reader.readAsDataURL(file);
+            }}
+          />
+        </label>
+        {resume.header.photo ? (
+          <button
+            type="button"
+            className="text-xs text-muted-foreground hover:text-destructive"
+            onClick={() => commit((r) => ({ ...r, header: { ...r.header, photo: undefined } }))}
+          >
+            Remove
+          </button>
+        ) : null}
+        <span className="text-[11px] text-muted-foreground">Photos can confuse ATS parsers.</span>
       </div>
     </GlassCard>
   );
@@ -559,6 +623,11 @@ function SectionEditor({
 
       {section.items ? (
         <div className="mt-2 space-y-2">
+          {section.items.length === 0 ? (
+            <p className="rounded-xl border border-dashed border-border p-3 text-center text-xs text-muted-foreground">
+              {EMPTY_HINT[section.kind] ?? "Nothing added yet — add your first entry."}
+            </p>
+          ) : null}
           {section.items.map((item, i) => (
             <ItemEditor
               key={item.id}
@@ -573,6 +642,13 @@ function SectionEditor({
               }
               onRemove={() =>
                 patch((s) => ({ ...s, items: (s.items ?? []).filter((x) => x.id !== item.id) }), true)
+              }
+              onDuplicate={() =>
+                patch((s) => {
+                  const list = [...(s.items ?? [])];
+                  list.splice(i + 1, 0, { ...structuredClone(item), id: uid() });
+                  return { ...s, items: list };
+                }, true)
               }
               onMove={(dir) =>
                 patch((s) => {
@@ -607,11 +683,13 @@ function ItemEditor({
   onChange,
   onRemove,
   onMove,
+  onDuplicate,
 }: {
   item: ExperienceItem | EducationItem | ProjectItem | SimpleItem | SkillGroup;
   resume: Resume;
   onChange: (next: ExperienceItem | EducationItem | ProjectItem | SimpleItem | SkillGroup) => void;
   onRemove: () => void;
+  onDuplicate: () => void;
   onMove: (dir: -1 | 1) => void;
 }) {
   const controls = (
@@ -622,7 +700,10 @@ function ItemEditor({
       <Button size="sm" variant="ghost" onClick={() => onMove(1)}>
         <ArrowDown className="size-3.5" />
       </Button>
-      <Button size="sm" variant="ghost" onClick={onRemove}>
+      <Button size="sm" variant="ghost" onClick={onDuplicate} title="Duplicate entry">
+        <Copy className="size-3.5" />
+      </Button>
+      <Button size="sm" variant="ghost" onClick={onRemove} title="Delete entry">
         <Trash2 className="size-3.5" />
       </Button>
     </div>
@@ -631,11 +712,20 @@ function ItemEditor({
   if (isSkillGroup(item)) {
     return (
       <div className="rounded-xl bg-card/60 p-2.5">
-        <Input
-          className="glass-input h-8"
-          value={item.label}
-          onChange={(e) => onChange({ ...item, label: e.target.value })}
-        />
+        <div className="grid gap-2 sm:grid-cols-2">
+          <Input
+            className="glass-input h-8"
+            placeholder="Category"
+            value={item.label}
+            onChange={(e) => onChange({ ...item, label: e.target.value })}
+          />
+          <Input
+            className="glass-input h-8"
+            placeholder="Proficiency (e.g. Advanced)"
+            value={item.proficiency ?? ""}
+            onChange={(e) => onChange({ ...item, proficiency: e.target.value })}
+          />
+        </div>
         <Textarea
           className="glass-input mt-2 min-h-14"
           placeholder="Comma separated skills"
@@ -657,8 +747,15 @@ function ItemEditor({
           <Input className="glass-input h-8" placeholder="Role" value={item.role} onChange={(e) => onChange({ ...item, role: e.target.value })} />
           <Input className="glass-input h-8" placeholder="Company" value={item.company} onChange={(e) => onChange({ ...item, company: e.target.value })} />
           <Input className="glass-input h-8" placeholder="Start" value={item.start ?? ""} onChange={(e) => onChange({ ...item, start: e.target.value })} />
-          <Input className="glass-input h-8" placeholder="End" value={item.end ?? ""} onChange={(e) => onChange({ ...item, end: e.target.value })} />
+          <Input className="glass-input h-8" placeholder={item.current ? "Present" : "End"} disabled={item.current} value={item.current ? "" : item.end ?? ""} onChange={(e) => onChange({ ...item, end: e.target.value })} />
+          <Input className="glass-input h-8" placeholder="Location" value={item.location ?? ""} onChange={(e) => onChange({ ...item, location: e.target.value })} />
+          <label className="flex items-center gap-2 text-xs">
+            <Switch checked={!!item.current} onCheckedChange={(v) => onChange({ ...item, current: v })} />
+            Current position
+          </label>
         </div>
+        <DateWarning start={item.start} end={item.current ? undefined : item.end} />
+        <Textarea className="glass-input mt-2 min-h-12 text-sm" placeholder="Short description (optional)" value={item.description ?? ""} onChange={(e) => onChange({ ...item, description: e.target.value })} />
         <div className="mt-2 space-y-2">
           {item.bullets.map((b, i) => (
             <BulletEditor
@@ -692,8 +789,11 @@ function ItemEditor({
           <Input className="glass-input h-8" placeholder="School" value={item.school} onChange={(e) => onChange({ ...item, school: e.target.value })} />
           <Input className="glass-input h-8" placeholder="Start" value={item.start ?? ""} onChange={(e) => onChange({ ...item, start: e.target.value })} />
           <Input className="glass-input h-8" placeholder="End" value={item.end ?? ""} onChange={(e) => onChange({ ...item, end: e.target.value })} />
+          <Input className="glass-input h-8" placeholder="Field of study" value={item.field ?? ""} onChange={(e) => onChange({ ...item, field: e.target.value })} />
+          <Input className="glass-input h-8" placeholder="Location" value={item.location ?? ""} onChange={(e) => onChange({ ...item, location: e.target.value })} />
         </div>
-        <Input className="glass-input mt-2 h-8" placeholder="Details" value={item.details ?? ""} onChange={(e) => onChange({ ...item, details: e.target.value })} />
+        <DateWarning start={item.start} end={item.end} />
+        <Textarea className="glass-input mt-2 min-h-12 text-sm" placeholder="Description, honours, GPA (optional)" value={item.description ?? item.details ?? ""} onChange={(e) => onChange({ ...item, description: e.target.value, details: undefined })} />
         {controls}
       </div>
     );
@@ -705,6 +805,8 @@ function ItemEditor({
         <div className="grid gap-2 sm:grid-cols-2">
           <Input className="glass-input h-8" placeholder="Project" value={item.name} onChange={(e) => onChange({ ...item, name: e.target.value })} />
           <Input className="glass-input h-8" placeholder="Role" value={item.role ?? ""} onChange={(e) => onChange({ ...item, role: e.target.value })} />
+          <Input className="glass-input h-8" placeholder="URL" value={item.url ?? ""} onChange={(e) => onChange({ ...item, url: e.target.value })} />
+          <Input className="glass-input h-8" placeholder="Technologies (comma separated)" value={(item.technologies ?? []).join(", ")} onChange={(e) => onChange({ ...item, technologies: e.target.value.split(",").map((t) => t.trimStart()) })} />
         </div>
         <Textarea className="glass-input mt-2 min-h-14" placeholder="Description" value={item.description ?? ""} onChange={(e) => onChange({ ...item, description: e.target.value })} />
         <div className="mt-2 space-y-2">
@@ -740,6 +842,7 @@ function ItemEditor({
           <Input className="glass-input h-8" placeholder="Detail" value={item.subtitle ?? ""} onChange={(e) => onChange({ ...item, subtitle: e.target.value })} />
           <Input className="glass-input h-8" placeholder="Date" value={item.date ?? ""} onChange={(e) => onChange({ ...item, date: e.target.value })} />
         </div>
+        <Input className="glass-input mt-2 h-8" placeholder="Description (optional)" value={item.description ?? ""} onChange={(e) => onChange({ ...item, description: e.target.value })} />
         {controls}
       </div>
     );
@@ -1086,4 +1189,42 @@ function SliderRow({
       />
     </div>
   );
+}
+
+const EMPTY_HINT: Partial<Record<SectionKind, string>> = {
+  experience: "No experience added yet — add your first position.",
+  education: "No education added yet — add your first school or course of study.",
+  skills: "No skills yet — add a category such as “Languages & tools”.",
+  projects: "No projects yet — add something you built or led.",
+  certifications: "No certifications yet.",
+  languages: "No languages yet.",
+  achievements: "No achievements yet.",
+};
+
+function headerError(key: string, value: string): string | null {
+  const v = value.trim();
+  if (key === "fullName" && !v) return "Your name is required.";
+  if (key === "email" && v && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return "This doesn't look like an email address.";
+  if (key === "phone" && v && !/^[+()\d\s.-]{6,}$/.test(v)) return "Use digits, spaces, +, - or brackets.";
+  return null;
+}
+
+function parseLooseDate(v?: string): number | null {
+  if (!v?.trim()) return null;
+  const m = v.trim().match(/(\d{4})(?:[-/.](\d{1,2}))?/);
+  if (m) return Number(m[1]) * 12 + (m[2] ? Number(m[2]) - 1 : 0);
+  const t = Date.parse(v);
+  return Number.isNaN(t) ? null : new Date(t).getFullYear() * 12 + new Date(t).getMonth();
+}
+
+function DateWarning({ start, end }: { start?: string; end?: string }) {
+  const a = parseLooseDate(start);
+  const b = parseLooseDate(end);
+  if (start?.trim() && a === null)
+    return <p className="mt-1 text-[11px] text-destructive">Start date not recognised — try “2021-03” or “Mar 2021”.</p>;
+  if (end?.trim() && b === null && !/present|now|current/i.test(end))
+    return <p className="mt-1 text-[11px] text-destructive">End date not recognised — try “2023-06” or “Present”.</p>;
+  if (a !== null && b !== null && b < a)
+    return <p className="mt-1 text-[11px] text-destructive">End date is before the start date.</p>;
+  return null;
 }
