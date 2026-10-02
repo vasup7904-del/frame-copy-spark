@@ -96,7 +96,22 @@ function Header({ resume, v, accent }: { resume: Resume; v: Variant; accent: str
   const h = resume.header;
   const contacts = [h.email, h.phone, h.location, h.website, h.linkedin, h.github].filter(Boolean);
   return (
-    <header style={{ textAlign: v.headerAlign ?? "left" }}>
+    <header style={{ textAlign: v.headerAlign ?? "left", position: "relative" }}>
+      {resume.design.showPhoto && h.photo ? (
+        <img
+          src={h.photo}
+          alt=""
+          style={{
+            width: 64,
+            height: 64,
+            borderRadius: "50%",
+            objectFit: "cover",
+            float: v.headerAlign === "center" ? "none" : "right",
+            margin: v.headerAlign === "center" ? "0 auto 6px" : "0 0 4px 10px",
+            display: "block",
+          }}
+        />
+      ) : null}
       <div
         style={{
           fontSize: `${v.nameSize}pt`,
@@ -211,13 +226,17 @@ function Section({
             <div key={item.id} style={{ marginTop: 3 }}>
               {compact ? (
                 <>
-                  <div style={{ fontWeight: 600 }}>{item.label}</div>
+                  <div style={{ fontWeight: 600 }}>
+                    {item.label}
+                    {item.proficiency ? <span style={{ fontWeight: 400, color: "#5b6478" }}> · {item.proficiency}</span> : null}
+                  </div>
                   <div style={{ color: "#3b4557" }}>{item.items.join(", ")}</div>
                 </>
               ) : (
                 <div>
                   <span style={{ fontWeight: 600 }}>{item.label}: </span>
                   <span>{item.items.join(", ")}</span>
+                  {item.proficiency ? <span style={{ color: "#5b6478" }}> ({item.proficiency})</span> : null}
                 </div>
               )}
             </div>
@@ -225,7 +244,7 @@ function Section({
         }
         if (isExperience(item)) {
           return (
-            <div key={item.id} style={{ marginTop: 6 }}>
+            <div key={item.id} className="doc-entry" style={{ marginTop: 6 }}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
                 <span style={{ fontWeight: 700 }}>{item.role || "Role"}</span>
                 <span style={{ color: "#5b6478", whiteSpace: "nowrap", fontSize: "0.9em" }}>
@@ -235,6 +254,7 @@ function Section({
               <div style={{ color: "#41506a", fontSize: "0.94em" }}>
                 {[item.company, item.location].filter(Boolean).join(" · ")}
               </div>
+              {item.description ? <div style={{ fontSize: "0.95em", marginTop: 2 }}>{item.description}</div> : null}
               {item.bullets.filter(Boolean).length ? (
                 <ul style={{ margin: "3px 0 0", paddingLeft: 16 }}>
                   {item.bullets.filter(Boolean).map((b, i) => (
@@ -249,9 +269,11 @@ function Section({
         }
         if (isEducation(item)) {
           return (
-            <div key={item.id} style={{ marginTop: 6 }}>
+            <div key={item.id} className="doc-entry" style={{ marginTop: 6 }}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-                <span style={{ fontWeight: 700 }}>{item.degree || "Qualification"}</span>
+                <span style={{ fontWeight: 700 }}>
+                  {[item.degree || "Qualification", item.field].filter(Boolean).join(", ")}
+                </span>
                 <span style={{ whiteSpace: "nowrap", fontSize: "0.9em", color: "#5b6478" }}>
                   {dateRange(item.start, item.end)}
                 </span>
@@ -260,17 +282,25 @@ function Section({
                 {[item.school, item.location].filter(Boolean).join(" · ")}
               </div>
               {item.details ? <div style={{ fontSize: "0.94em" }}>{item.details}</div> : null}
+              {item.description ? <div style={{ fontSize: "0.94em" }}>{item.description}</div> : null}
             </div>
           );
         }
         if (isProject(item)) {
           return (
-            <div key={item.id} style={{ marginTop: 6 }}>
+            <div key={item.id} className="doc-entry" style={{ marginTop: 6 }}>
               <div style={{ fontWeight: 700 }}>
                 {item.name}
                 {item.role ? ` — ${item.role}` : ""}
               </div>
+              {item.url ? <div style={{ fontSize: "0.88em", color: "#41506a" }}>{item.url}</div> : null}
               {item.description ? <div style={{ fontSize: "0.95em" }}>{item.description}</div> : null}
+              {item.technologies?.length ? (
+                <div style={{ fontSize: "0.9em", color: "#41506a" }}>
+                  <span style={{ fontWeight: 600 }}>Technologies: </span>
+                  {item.technologies.join(", ")}
+                </div>
+              ) : null}
               {item.bullets.filter(Boolean).length ? (
                 <ul style={{ margin: "3px 0 0", paddingLeft: 16 }}>
                   {item.bullets.filter(Boolean).map((b, i) => (

@@ -14,6 +14,7 @@ export interface ExperienceItem {
   start?: string;
   end?: string;
   current?: boolean;
+  description?: string;
   bullets: string[];
 }
 
@@ -21,10 +22,12 @@ export interface EducationItem {
   id: ID;
   degree: string;
   school: string;
+  field?: string;
   location?: string;
   start?: string;
   end?: string;
   details?: string;
+  description?: string;
 }
 
 export interface ProjectItem {
@@ -33,6 +36,7 @@ export interface ProjectItem {
   role?: string;
   url?: string;
   description?: string;
+  technologies?: string[];
   bullets: string[];
 }
 
@@ -46,8 +50,10 @@ export interface SimpleItem {
 
 export interface SkillGroup {
   id: ID;
+  /** category, e.g. "Languages & frameworks" */
   label: string;
   items: string[];
+  proficiency?: string;
 }
 
 export interface CareerProfile {
@@ -59,6 +65,7 @@ export interface CareerProfile {
   website: string;
   linkedin: string;
   github: string;
+  photo?: string;
   summary: string;
   links: LinkItem[];
   experience: ExperienceItem[];
@@ -127,6 +134,7 @@ export interface ResumeHeader {
   website: string;
   linkedin: string;
   github: string;
+  photo?: string;
 }
 
 export interface Resume {

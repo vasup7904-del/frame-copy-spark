@@ -15,9 +15,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { EmptyState, GlassCard, PageHeader, Label } from "@/components/glass";
+import { ResumeCard } from "@/components/resume-card";
 import { blankResume, newSection, uid } from "@/lib/defaults";
 import { setData, useAppData } from "@/lib/store";
-import type { Resume } from "@/lib/types";
+import { createResume } from "@/lib/resume-actions";
 import { useAI } from "@/lib/use-ai";
 
 export const Route = createFileRoute("/builder/")({
@@ -37,32 +38,8 @@ function ResumeList() {
   const navigate = useNavigate();
 
   const create = () => {
-    const r = blankResume(`Resume ${data.resumes.length + 1}`);
-    r.header = {
-      fullName: data.profile.fullName,
-      headline: data.profile.headline,
-      email: data.profile.email,
-      phone: data.profile.phone,
-      location: data.profile.location,
-      website: data.profile.website,
-      linkedin: data.profile.linkedin,
-      github: data.profile.github,
-    };
-    setData((d) => ({ ...d, resumes: [r, ...d.resumes] }));
+    const r = createResume();
     navigate({ to: "/builder/$id", params: { id: r.id } });
-  };
-
-  const duplicate = (r: Resume) => {
-    const copy: Resume = {
-      ...structuredClone(r),
-      id: uid(),
-      name: `${r.name} (copy)`,
-      parentId: r.parentId ?? r.id,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    };
-    setData((d) => ({ ...d, resumes: [copy, ...d.resumes] }));
-    toast.success("Version created");
   };
 
   return (
@@ -91,38 +68,7 @@ function ResumeList() {
           {[...data.resumes]
             .sort((a, b) => b.updatedAt - a.updatedAt)
             .map((r) => (
-              <GlassCard soft key={r.id} className="p-4">
-                <Link to="/builder/$id" params={{ id: r.id }} className="block">
-                  <p className="font-display truncate text-[15px] font-semibold">{r.name}</p>
-                  <p className="mt-0.5 text-[11px] text-muted-foreground">
-                    {r.design.template} · {r.sections.filter((s) => s.visible).length} sections ·{" "}
-                    {r.lastScore ? `ATS ${r.lastScore}` : "Not checked"}
-                  </p>
-                  <p className="mt-3 line-clamp-2 text-xs text-muted-foreground">
-                    {r.header.headline || r.header.fullName || "No header details yet"}
-                  </p>
-                </Link>
-                <div className="mt-3 flex gap-2">
-                  <Button size="sm" variant="outline" asChild>
-                    <Link to="/builder/$id" params={{ id: r.id }}>
-                      Open
-                    </Link>
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => duplicate(r)}>
-                    <Copy className="size-3.5" /> Duplicate
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => {
-                      setData((d) => ({ ...d, resumes: d.resumes.filter((x) => x.id !== r.id) }));
-                      toast.success("Resume deleted");
-                    }}
-                  >
-                    <Trash2 className="size-3.5" />
-                  </Button>
-                </div>
-              </GlassCard>
+              <ResumeCard key={r.id} resume={r} />
             ))}
         </div>
       )}
