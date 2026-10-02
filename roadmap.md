@@ -18,9 +18,7 @@
 
 ## Phase 3
 - [x] Cover letter builder
-- [x] Job tracker (kanban / table / calendar)
-- [x] Interview prep + mock interview
-- [x] LinkedIn coach
+- Job tracker / Interview prep / LinkedIn coach — removed by request
 
 ## Phase 4
 - [x] Resume import (TXT/PDF text paste)
@@ -28,3 +26,11 @@
 - [x] Versioning / duplicate
 - [x] Document library
 - [ ] Shareable public links (needs cloud backend — not enabled)
+
+## Focus build (Oct 2) — functional resume builder
+- [x] Remove Job Tracker, Interview Prep, LinkedIn Coach
+- [x] Extend resume model (photo, description, field of study, proficiency, technologies)
+- [x] Editor: empty states, validation, Saving/Saved indicator, section+entry reorder/duplicate/hide
+- [x] Multi-page preview with page-break guides
+- [x] Dashboard resume cards (open/duplicate/rename/delete)
+- [x] Minimal pages for Tailoring, Cover Letters, Library, Settings (full features later)
