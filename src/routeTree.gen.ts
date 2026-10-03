@@ -12,7 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AnalyzerRouteImport } from './routes/analyzer'
 import { Route as BuilderRouteImport } from './routes/builder'
+import { Route as CoverLettersRouteImport } from './routes/cover-letters'
+import { Route as LibraryRouteImport } from './routes/library'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as TailoringRouteImport } from './routes/tailoring'
 import { Route as TemplatesRouteImport } from './routes/templates'
 import { Route as BuilderIndexRouteImport } from './routes/builder.index'
 import { Route as BuilderIdRouteImport } from './routes/builder.$id'
@@ -32,9 +36,29 @@ const BuilderRoute = BuilderRouteImport.update({
   path: '/builder',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CoverLettersRoute = CoverLettersRouteImport.update({
+  id: '/cover-letters',
+  path: '/cover-letters',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LibraryRoute = LibraryRouteImport.update({
+  id: '/library',
+  path: '/library',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TailoringRoute = TailoringRouteImport.update({
+  id: '/tailoring',
+  path: '/tailoring',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TemplatesRoute = TemplatesRouteImport.update({
@@ -57,7 +81,11 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/analyzer': typeof AnalyzerRoute
   '/builder': typeof BuilderRouteWithChildren
+  '/cover-letters': typeof CoverLettersRoute
+  '/library': typeof LibraryRoute
   '/profile': typeof ProfileRoute
+  '/settings': typeof SettingsRoute
+  '/tailoring': typeof TailoringRoute
   '/templates': typeof TemplatesRoute
   '/builder/$id': typeof BuilderIdRoute
   '/builder/': typeof BuilderIndexRoute
@@ -65,7 +93,11 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/analyzer': typeof AnalyzerRoute
+  '/cover-letters': typeof CoverLettersRoute
+  '/library': typeof LibraryRoute
   '/profile': typeof ProfileRoute
+  '/settings': typeof SettingsRoute
+  '/tailoring': typeof TailoringRoute
   '/templates': typeof TemplatesRoute
   '/builder/$id': typeof BuilderIdRoute
   '/builder': typeof BuilderIndexRoute
@@ -75,7 +107,11 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/analyzer': typeof AnalyzerRoute
   '/builder': typeof BuilderRouteWithChildren
+  '/cover-letters': typeof CoverLettersRoute
+  '/library': typeof LibraryRoute
   '/profile': typeof ProfileRoute
+  '/settings': typeof SettingsRoute
+  '/tailoring': typeof TailoringRoute
   '/templates': typeof TemplatesRoute
   '/builder/$id': typeof BuilderIdRoute
   '/builder/': typeof BuilderIndexRoute
@@ -86,19 +122,36 @@ export interface FileRouteTypes {
     | '/'
     | '/analyzer'
     | '/builder'
+    | '/cover-letters'
+    | '/library'
     | '/profile'
+    | '/settings'
+    | '/tailoring'
     | '/templates'
     | '/builder/$id'
     | '/builder/'
   fileRoutesByTo: FileRoutesByTo
   to:
-    '/' | '/analyzer' | '/profile' | '/templates' | '/builder/$id' | '/builder'
+    | '/'
+    | '/analyzer'
+    | '/cover-letters'
+    | '/library'
+    | '/profile'
+    | '/settings'
+    | '/tailoring'
+    | '/templates'
+    | '/builder/$id'
+    | '/builder'
   id:
     | '__root__'
     | '/'
     | '/analyzer'
     | '/builder'
+    | '/cover-letters'
+    | '/library'
     | '/profile'
+    | '/settings'
+    | '/tailoring'
     | '/templates'
     | '/builder/$id'
     | '/builder/'
@@ -108,7 +161,11 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AnalyzerRoute: typeof AnalyzerRoute
   BuilderRoute: typeof BuilderRouteWithChildren
+  CoverLettersRoute: typeof CoverLettersRoute
+  LibraryRoute: typeof LibraryRoute
   ProfileRoute: typeof ProfileRoute
+  SettingsRoute: typeof SettingsRoute
+  TailoringRoute: typeof TailoringRoute
   TemplatesRoute: typeof TemplatesRoute
 }
 
@@ -135,11 +192,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BuilderRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cover-letters': {
+      id: '/cover-letters'
+      path: '/cover-letters'
+      fullPath: '/cover-letters'
+      preLoaderRoute: typeof CoverLettersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/library': {
+      id: '/library'
+      path: '/library'
+      fullPath: '/library'
+      preLoaderRoute: typeof LibraryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/profile': {
       id: '/profile'
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tailoring': {
+      id: '/tailoring'
+      path: '/tailoring'
+      fullPath: '/tailoring'
+      preLoaderRoute: typeof TailoringRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/templates': {
@@ -183,7 +268,11 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnalyzerRoute: AnalyzerRoute,
   BuilderRoute: BuilderRouteWithChildren,
+  CoverLettersRoute: CoverLettersRoute,
+  LibraryRoute: LibraryRoute,
   ProfileRoute: ProfileRoute,
+  SettingsRoute: SettingsRoute,
+  TailoringRoute: TailoringRoute,
   TemplatesRoute: TemplatesRoute,
 }
 export const routeTree = rootRouteImport
