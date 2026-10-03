@@ -497,7 +497,7 @@ function SectionEditor({
       const list = [...r.sections];
       const to = index + dir;
       if (to < 0 || to >= list.length) return r;
-      [list[index], list[to]] = [list[to], list[index]];
+      [list[index], list[to]] = [list[to]!, list[index]!];
       return { ...r, sections: list };
     });
 
@@ -655,7 +655,7 @@ function SectionEditor({
                   const list = [...(s.items ?? [])];
                   const to = i + dir;
                   if (to < 0 || to >= list.length) return s;
-                  [list[i], list[to]] = [list[to], list[i]];
+                  [list[i], list[to]] = [list[to]!, list[i]!];
                   return { ...s, items: list };
                 }, true)
               }
@@ -907,7 +907,7 @@ function BulletEditor({
             key={label}
             type="button"
             disabled={loading || !value.trim()}
-            onClick={() => run(instruction)}
+            onClick={() => run(instruction ?? "")}
             className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-medium text-secondary-foreground hover:bg-primary/10 hover:text-primary disabled:opacity-50"
           >
             {label}
@@ -1032,7 +1032,7 @@ function AiTextTools({
             key={label}
             type="button"
             disabled={loading}
-            onClick={() => run(instruction)}
+            onClick={() => run(instruction ?? "")}
             className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-medium text-secondary-foreground hover:bg-primary/10 hover:text-primary disabled:opacity-50"
           >
             {label}
@@ -1185,7 +1185,7 @@ function SliderRow({
         min={min}
         max={max}
         step={step}
-        onValueChange={([v]) => onChange(v)}
+        onValueChange={([v]) => onChange(v ?? value)}
       />
     </div>
   );
