@@ -53,7 +53,7 @@ function AnalyzerPage() {
     return (
       <div className="space-y-5">
         <PageHeader title="Resume analyzer" subtitle="Deep checks for ATS parsing and writing quality." />
-        <EmptyState title="No resume to analyze yet" description="Create a resume first, then come back." />
+        <EmptyState title="No resume to analyze yet" body="Create a resume first, then come back." />
       </div>
     );
   }

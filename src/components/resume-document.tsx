@@ -38,7 +38,7 @@ const SIDEBAR_KINDS = new Set(["skills", "languages", "certifications", "interes
 
 export function ResumeDocument({ resume, scale = 1 }: { resume: Resume; scale?: number }) {
   const d = resume.design;
-  const v = VARIANTS[d.template] ?? VARIANTS.atlas;
+  const v = (VARIANTS[d.template] ?? VARIANTS["atlas"]) as Variant;
   const accent = d.accent;
 
   const pageStyle: CSSProperties = {
@@ -47,7 +47,7 @@ export function ResumeDocument({ resume, scale = 1 }: { resume: Resume; scale?: 
     lineHeight: d.lineHeight,
     padding: `${d.margin}mm`,
     transform: scale === 1 ? undefined : `scale(${scale})`,
-    transformOrigin: "top center",
+    transformOrigin: "top left",
   };
 
   const visible = resume.sections.filter((s) => s.visible);

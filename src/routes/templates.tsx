@@ -102,7 +102,7 @@ function TemplatesPage() {
       {!sample ? (
         <EmptyState
           title="No resume yet"
-          description="Pick any template below and we'll start a new resume with it."
+          body="Pick any template below and we'll start a new resume with it."
         />
       ) : null}
 

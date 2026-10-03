@@ -1,3 +1,4 @@
+import { SECTION_LABELS as SECTION_TITLES } from "./defaults";
 import { TEMPLATES } from "./defaults";
 import {
   allBullets,
@@ -119,7 +120,7 @@ export function analyzeResume(resume: Resume, jobDescription?: string): AtsRepor
   add("skills", "Skills section", "Structure", skillList.length >= 5,
     `Only ${skillList.length} skills listed.`, "Skill keywords drive most automated matching.", "List at least 8–12 relevant skills.");
   add("headings", "Standard headings", "ATS",
-    visible.every((s) => s.kind === "custom" ? true : STANDARD_HEADINGS.includes(s.title.toLowerCase()) || s.kind !== "custom"),
+    visible.filter((s) => s.kind !== "custom").every((s) => STANDARD_HEADINGS.includes(s.title.toLowerCase()) || s.title === s.title.trim() && s.title.length > 0 && Object.values(SECTION_TITLES).includes(s.title)),
     "Some section headings are non-standard.", "Parsers map standard headings to fields.", "Use conventional names such as 'Work Experience'.");
   add("order", "Section ordering", "Structure",
     visible[0]?.kind === "summary" || visible[0]?.kind === "experience" ? true : "warn",
@@ -186,7 +187,7 @@ export function analyzeResume(resume: Resume, jobDescription?: string): AtsRepor
     .map((e) => parseInt((e.start ?? "").match(/\d{4}/)?.[0] ?? "0", 10))
     .filter(Boolean)
     .sort((a, b) => b - a);
-  const gaps = years.filter((y, i) => i > 0 && years[i - 1] - y > 2).length;
+  const gaps = years.filter((y, i) => i > 0 && (years[i - 1] ?? y) - y > 2).length;
   add("gaps", "No large unexplained gaps", "Content", gaps === 0 ? true : "warn",
     gaps ? `${gaps} gap(s) of more than two years between roles.` : "No large gaps detected.",
     "Unexplained gaps prompt questions in screening.", "Add a short line covering study, caring or contract work.");
