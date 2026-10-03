@@ -108,7 +108,7 @@ export interface ResumeSection {
   visible: boolean;
   /** free text used by summary / references / custom sections */
   text?: string | undefined;
-  items?: (ExperienceItem | EducationItem | ProjectItem | SimpleItem | SkillGroup)[];
+  items?: (ExperienceItem | EducationItem | ProjectItem | SimpleItem | SkillGroup)[] | undefined;
   bullets?: string[] | undefined;
 }
 

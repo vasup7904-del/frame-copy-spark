@@ -1217,7 +1217,7 @@ function parseLooseDate(v?: string): number | null {
   return Number.isNaN(t) ? null : new Date(t).getFullYear() * 12 + new Date(t).getMonth();
 }
 
-function DateWarning({ start, end }: { start?: string; end?: string }) {
+function DateWarning({ start, end }: { start?: string | undefined; end?: string | undefined }) {
   const a = parseLooseDate(start);
   const b = parseLooseDate(end);
   if (start?.trim() && a === null)
