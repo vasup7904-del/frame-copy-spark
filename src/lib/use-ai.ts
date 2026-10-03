@@ -8,7 +8,7 @@ export function useAI() {
   const [loading, setLoading] = useState(false);
 
   const ask = useCallback(
-    async (prompt: string, opts?: { system?: string; json?: boolean }) => {
+    async (prompt: string, opts?: { system?: string | undefined; json?: boolean }) => {
       setLoading(true);
       try {
         const res = await run({
