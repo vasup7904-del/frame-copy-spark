@@ -47,7 +47,7 @@ export function ResumeDocument({ resume, scale = 1 }: { resume: Resume; scale?: 
     lineHeight: d.lineHeight,
     padding: `${d.margin}mm`,
     transform: scale === 1 ? undefined : `scale(${scale})`,
-    transformOrigin: "top center",
+    transformOrigin: "top left",
   };
 
   const visible = resume.sections.filter((s) => s.visible);
