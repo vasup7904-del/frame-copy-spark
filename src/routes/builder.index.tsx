@@ -19,6 +19,7 @@ import { ResumeCard } from "@/components/resume-card";
 import { blankResume, newSection, uid } from "@/lib/defaults";
 import { setData, useAppData } from "@/lib/store";
 import { createResume } from "@/lib/resume-actions";
+import { legacyToContacts } from "@/lib/header";
 import { useAI } from "@/lib/use-ai";
 
 export const Route = createFileRoute("/builder/")({
@@ -109,12 +110,11 @@ function ImportDialog() {
     r.header = {
       fullName: parsed.fullName ?? "",
       headline: parsed.headline ?? "",
-      email: parsed.email ?? "",
-      phone: parsed.phone ?? "",
-      location: parsed.location ?? "",
-      website: "",
-      linkedin: "",
-      github: "",
+      contacts: legacyToContacts({
+        email: parsed.email,
+        phone: parsed.phone,
+        location: parsed.location,
+      }),
     };
     const summary = newSection("summary");
     summary.text = parsed.summary ?? "";

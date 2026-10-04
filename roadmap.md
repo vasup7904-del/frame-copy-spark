@@ -34,3 +34,6 @@
 - [x] Multi-page preview with page-break guides
 - [x] Dashboard resume cards (open/duplicate/rename/delete)
 - [x] Minimal pages for Tailoring, Cover Letters, Library, Settings (full features later)
+
+## Flexible header (Oct 4)
+- [x] Contact items with label/text/URL/row/visibility/order, migration of old headers, links in preview, TXT export
