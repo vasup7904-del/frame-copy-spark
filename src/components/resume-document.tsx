@@ -8,6 +8,7 @@ import {
   isSimple,
   isSkillGroup,
 } from "@/lib/resume-utils";
+import { contactRows, safeHref } from "@/lib/header";
 
 interface Variant {
   serif?: boolean;
@@ -94,7 +95,7 @@ export function ResumeDocument({ resume, scale = 1 }: { resume: Resume; scale?: 
 
 function Header({ resume, v, accent }: { resume: Resume; v: Variant; accent: string }) {
   const h = resume.header;
-  const contacts = [h.email, h.phone, h.location, h.website, h.linkedin, h.github].filter(Boolean);
+  const rows = contactRows(h);
   return (
     <header style={{ textAlign: v.headerAlign ?? "left", position: "relative" }}>
       {resume.design.showPhoto && h.photo ? (
@@ -127,23 +128,37 @@ function Header({ resume, v, accent }: { resume: Resume; v: Variant; accent: str
       {h.headline ? (
         <div style={{ marginTop: 2, fontSize: "1.05em", color: "#414b5c" }}>{h.headline}</div>
       ) : null}
-      {contacts.length ? (
+      {rows.map((row, ri) => (
         <div
+          key={ri}
           style={{
-            marginTop: 5,
+            marginTop: ri === 0 ? 5 : 1,
             fontSize: "0.86em",
             color: "#4a5568",
             display: "flex",
             flexWrap: "wrap",
-            gap: "4px 10px",
+            columnGap: 0,
+            rowGap: 2,
             justifyContent: v.headerAlign === "center" ? "center" : "flex-start",
           }}
         >
-          {contacts.map((c) => (
-            <span key={c}>{c}</span>
-          ))}
+          {row.map((c, i) => {
+            const href = safeHref(c.url);
+            return (
+              <span key={c.id}>
+                {i > 0 ? <span style={{ margin: "0 7px", color: "#9aa3b2" }}>|</span> : null}
+                {href ? (
+                  <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "none" }}>
+                    {c.value}
+                  </a>
+                ) : (
+                  c.value
+                )}
+              </span>
+            );
+          })}
         </div>
-      ) : null}
+      ))}
       <div style={{ marginTop: 8, height: 2, background: accent, opacity: 0.85 }} />
     </header>
   );

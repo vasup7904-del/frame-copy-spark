@@ -1309,7 +1309,7 @@ function headerError(key: string, value: string): string | null {
   const v = value.trim();
   if (key === "fullName" && !v) return "Your name is required.";
   if (key === "email" && v && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return "This doesn't look like an email address.";
-  if (key === "phone" && v && !/^[+()\d\s.-]{6,}$/.test(v)) return "Use digits, spaces, +, - or brackets.";
+  if (key === "phone" && v && !/^[+()\dxX\s.-]{6,}$/.test(v)) return "Use digits, spaces, +, - or brackets.";
   return null;
 }
 
