@@ -39,6 +39,7 @@ import { FONT_OPTIONS, SECTION_LABELS, TEMPLATES, newSection, uid } from "@/lib/
 import type {
   EducationItem,
   ExperienceItem,
+  HeaderContactItem,
   ProjectItem,
   Resume,
   ResumeSection,
@@ -56,6 +57,7 @@ import {
   resumeToText,
 } from "@/lib/resume-utils";
 import { useAI } from "@/lib/use-ai";
+import { CONTACT_PRESETS, getContacts, headerFromProfile, makeContact } from "@/lib/header";
 
 export const Route = createFileRoute("/builder/$id")({
   head: () => ({
@@ -331,8 +333,28 @@ function HeaderEditor({
   commit: (fn: (r: Resume) => Resume, record?: boolean) => void;
 }) {
   const profile = useAppData().profile;
-  const set = (k: keyof Resume["header"], v: string) =>
+  const set = (k: "fullName" | "headline", v: string) =>
     commit((r) => ({ ...r, header: { ...r.header, [k]: v } }), false);
+  const contacts = getContacts(resume.header);
+  const setContacts = (fn: (list: HeaderContactItem[]) => HeaderContactItem[], record = false) =>
+    commit((r) => ({ ...r, header: { ...r.header, contacts: fn(getContacts(r.header)) } }), record);
+  const patchContact = (id: string, patch: Partial<HeaderContactItem>, record = false) =>
+    setContacts((list) => list.map((c) => (c.id === id ? { ...c, ...patch } : c)), record);
+  const moveContact = (id: string, dir: -1 | 1) =>
+    setContacts((list) => {
+      const i = list.findIndex((c) => c.id === id);
+      const item = list[i];
+      if (!item) return list;
+      // swap with the nearest neighbour on the same row
+      let j = i + dir;
+      while (j >= 0 && j < list.length && list[j]?.row !== item.row) j += dir;
+      if (j < 0 || j >= list.length) return list;
+      const next = [...list];
+      [next[i], next[j]] = [next[j]!, next[i]!];
+      return next;
+    }, true);
+  const [preset, setPreset] = useState("custom-link");
+  const maxRow = Math.max(3, ...contacts.map((c) => c.row + 1));
 
   return (
     <GlassCard soft className="p-3">
@@ -343,54 +365,136 @@ function HeaderEditor({
         <Button
           size="sm"
           variant="ghost"
-          onClick={() =>
-            commit((r) => ({
-              ...r,
-              header: {
-                fullName: profile.fullName,
-                headline: profile.headline,
-                email: profile.email,
-                phone: profile.phone,
-                location: profile.location,
-                website: profile.website,
-                linkedin: profile.linkedin,
-                github: profile.github,
-                photo: profile.photo,
-              },
-            }))
-          }
+          onClick={() => commit((r) => ({ ...r, header: headerFromProfile(profile) }))}
         >
           Pull from profile
         </Button>
       </div>
       <div className="grid gap-2 sm:grid-cols-2">
-        {(
-          [
-            ["fullName", "Full name"],
-            ["headline", "Professional title"],
-            ["email", "Email"],
-            ["phone", "Phone"],
-            ["location", "Location"],
-            ["website", "Portfolio"],
-            ["linkedin", "LinkedIn"],
-            ["github", "GitHub"],
-          ] as const
-        ).map(([key, label]) => (
-          <div key={key}>
-            <Label>{label}</Label>
-            <Input
-              className="glass-input mt-1 h-9"
-              value={resume.header[key] ?? ""}
-              aria-invalid={!!headerError(key, resume.header[key] ?? "")}
-              onChange={(e) => set(key, e.target.value)}
-            />
-            {headerError(key, resume.header[key] ?? "") ? (
-              <p className="mt-0.5 text-[11px] text-destructive">
-                {headerError(key, resume.header[key] ?? "")}
-              </p>
-            ) : null}
-          </div>
-        ))}
+        <div>
+          <Label>Full name</Label>
+          <Input
+            className="glass-input mt-1 h-9"
+            value={resume.header.fullName}
+            aria-invalid={!!headerError("fullName", resume.header.fullName)}
+            onChange={(e) => set("fullName", e.target.value)}
+          />
+          {headerError("fullName", resume.header.fullName) ? (
+            <p className="mt-0.5 text-[11px] text-destructive">{headerError("fullName", resume.header.fullName)}</p>
+          ) : null}
+        </div>
+        <div>
+          <Label>Professional title</Label>
+          <Input
+            className="glass-input mt-1 h-9"
+            value={resume.header.headline}
+            onChange={(e) => set("headline", e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="mt-3 flex items-center justify-between">
+        <Label>Contact details &amp; links</Label>
+        <span className="text-[10px] text-muted-foreground">Text · link (optional) · row</span>
+      </div>
+      {contacts.length === 0 ? (
+        <p className="mt-1 rounded-lg border border-dashed border-border p-2 text-center text-[11px] text-muted-foreground">
+          No contact details yet — add email, phone or a link below.
+        </p>
+      ) : null}
+      <div className="mt-1 space-y-1.5">
+        {contacts.map((c) => {
+          const err = headerError(c.type, c.value);
+          const preset = CONTACT_PRESETS.find((p) => p.type === c.type);
+          const isLink = !!c.url || !!preset?.link;
+          return (
+            <div key={c.id} className={`rounded-lg bg-card/60 p-1.5 ${c.visible ? "" : "opacity-55"}`}>
+              <div className="flex items-center gap-1">
+                <Input
+                  className="glass-input h-7 w-24 shrink-0 px-2 text-[11px] font-semibold"
+                  placeholder="Label"
+                  aria-label="Field label"
+                  value={c.label}
+                  onChange={(e) => patchContact(c.id, { label: e.target.value })}
+                />
+                <Input
+                  className="glass-input h-7 min-w-0 flex-1 px-2 text-xs"
+                  placeholder="Shown on resume"
+                  aria-label={`${c.label || "Field"} text`}
+                  value={c.value}
+                  onChange={(e) => patchContact(c.id, { value: e.target.value })}
+                />
+                <select
+                  aria-label={`${c.label || "Field"} row`}
+                  className="h-7 rounded-md border border-input bg-card px-1 text-[11px]"
+                  value={c.row}
+                  onChange={(e) => patchContact(c.id, { row: Number(e.target.value) }, true)}
+                >
+                  {Array.from({ length: maxRow }, (_, i) => i + 1).map((n) => (
+                    <option key={n} value={n}>
+                      Row {n}
+                    </option>
+                  ))}
+                </select>
+                <Button size="sm" variant="ghost" className="size-7 p-0" title="Move up" onClick={() => moveContact(c.id, -1)}>
+                  <ArrowUp className="size-3" />
+                </Button>
+                <Button size="sm" variant="ghost" className="size-7 p-0" title="Move down" onClick={() => moveContact(c.id, 1)}>
+                  <ArrowDown className="size-3" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="size-7 p-0"
+                  title={c.visible ? `Hide ${c.label}` : `Show ${c.label}`}
+                  onClick={() => patchContact(c.id, { visible: !c.visible }, true)}
+                >
+                  {c.visible ? <Eye className="size-3" /> : <EyeOff className="size-3" />}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="size-7 p-0"
+                  title={`Delete ${c.label}`}
+                  onClick={() => setContacts((list) => list.filter((x) => x.id !== c.id), true)}
+                >
+                  <Trash2 className="size-3" />
+                </Button>
+              </div>
+              {isLink ? (
+                <Input
+                  className="glass-input mt-1 h-7 px-2 text-[11px]"
+                  placeholder="Link URL (optional), e.g. https://leetcode.com/username"
+                  aria-label={`${c.label || "Field"} URL`}
+                  value={c.url ?? ""}
+                  onChange={(e) => patchContact(c.id, { url: e.target.value || undefined })}
+                />
+              ) : null}
+              {err ? <p className="mt-0.5 text-[11px] text-destructive">{err}</p> : null}
+            </div>
+          );
+        })}
+      </div>
+      <div className="mt-2 flex items-center gap-1.5">
+        <select
+          aria-label="Field type to add"
+          className="h-8 flex-1 rounded-md border border-input bg-card px-2 text-xs"
+          value={preset}
+          onChange={(e) => setPreset(e.target.value)}
+        >
+          {CONTACT_PRESETS.map((p) => (
+            <option key={p.type} value={p.type}>
+              {p.label}
+            </option>
+          ))}
+        </select>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => setContacts((list) => [...list, makeContact(preset)], true)}
+        >
+          <Plus className="size-3.5" /> Add field
+        </Button>
       </div>
       <div className="mt-3 flex items-center gap-3">
         {resume.header.photo ? (
