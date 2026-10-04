@@ -146,7 +146,7 @@ function Header({ resume, v, accent }: { resume: Resume; v: Variant; accent: str
             const href = safeHref(c.url);
             return (
               <span key={c.id}>
-                {i > 0 ? <span style={{ margin: "0 7px", color: "#9aa3b2" }}>|</span> : null}
+                {i > 0 ? <span style={{ whiteSpace: "pre", color: "#9aa3b2" }}>{"  |  "}</span> : null}
                 {href ? (
                   <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "none" }}>
                     {c.value}
