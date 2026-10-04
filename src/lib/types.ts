@@ -125,16 +125,27 @@ export interface ResumeDesign {
   showPhoto: boolean;
 }
 
+export interface HeaderContactItem {
+  id: ID;
+  /** preset kind (email, phone, linkedin, leetcode, custom, custom-link…) */
+  type: string;
+  /** editor label, e.g. "LeetCode" */
+  label: string;
+  /** text shown on the resume */
+  value: string;
+  /** optional link target; when set the value renders as a clickable link */
+  url?: string | undefined;
+  visible: boolean;
+  /** 1-based header row */
+  row: number;
+}
+
 export interface ResumeHeader {
   fullName: string;
   headline: string;
-  email: string;
-  phone: string;
-  location: string;
-  website: string;
-  linkedin: string;
-  github: string;
   photo?: string | undefined;
+  /** ordered contact items — array order is display order within a row */
+  contacts: HeaderContactItem[];
 }
 
 export interface Resume {
