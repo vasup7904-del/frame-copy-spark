@@ -1,5 +1,6 @@
 import { blankResume, uid } from "./defaults";
 import { getData, setData } from "./store";
+import { headerFromProfile } from "./header";
 import type { Resume } from "./types";
 
 /** Create a new structured resume, prefilled from the career profile header. */
@@ -9,17 +10,7 @@ export function createResume(): Resume {
   const r = blankResume(`Resume ${d.resumes.length + 1}`);
   r.design.template = d.settings.defaultTemplate || r.design.template;
   r.design.pageSize = d.settings.defaultPageSize || r.design.pageSize;
-  r.header = {
-    fullName: p.fullName,
-    headline: p.headline,
-    email: p.email,
-    phone: p.phone,
-    location: p.location,
-    website: p.website,
-    linkedin: p.linkedin,
-    github: p.github,
-    photo: p.photo,
-  };
+  r.header = headerFromProfile(p);
   setData((s) => ({ ...s, resumes: [r, ...s.resumes] }));
   return r;
 }
@@ -35,6 +26,7 @@ export function duplicateResume(id: string): Resume | null {
   copy.parentId = src.id;
   copy.createdAt = now;
   copy.updatedAt = now;
+  copy.header = { ...copy.header, contacts: copy.header.contacts.map((c) => ({ ...c, id: uid() })) };
   copy.sections = copy.sections.map((s) => ({
     ...s,
     id: uid(),

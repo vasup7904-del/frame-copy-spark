@@ -118,12 +118,7 @@ export const blankResume = (name = "Untitled resume"): Resume => {
     header: {
       fullName: "",
       headline: "",
-      email: "",
-      phone: "",
-      location: "",
-      website: "",
-      linkedin: "",
-      github: "",
+      contacts: [],
     },
     sections: [
       newSection("summary"),

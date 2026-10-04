@@ -1,5 +1,6 @@
 import { useCallback, useSyncExternalStore } from "react";
 import { emptyData } from "./defaults";
+import { normalizeHeader } from "./header";
 import type { AppData } from "./types";
 
 const KEY = "resumeforge.data.v1";
@@ -14,7 +15,13 @@ function load(): AppData {
     const raw = window.localStorage.getItem(KEY);
     if (!raw) return emptyData();
     const parsed = JSON.parse(raw) as AppData;
-    return { ...emptyData(), ...parsed, settings: { ...emptyData().settings, ...parsed.settings } };
+    const base = emptyData();
+    const resumes = Array.isArray(parsed.resumes)
+      ? parsed.resumes
+          .filter((r) => r && typeof r === "object")
+          .map((r) => ({ ...r, header: normalizeHeader(r.header) }))
+      : [];
+    return { ...base, ...parsed, resumes, settings: { ...base.settings, ...parsed.settings } };
   } catch {
     return emptyData();
   }

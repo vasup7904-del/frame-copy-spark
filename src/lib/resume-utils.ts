@@ -7,6 +7,7 @@ import type {
   SimpleItem,
   SkillGroup,
 } from "./types";
+import { contactText } from "./header";
 
 export const isExperience = (i: unknown): i is ExperienceItem =>
   !!i && typeof i === "object" && "company" in (i as object);
@@ -53,9 +54,7 @@ export function sectionToText(s: ResumeSection): string {
 
 export function resumeToText(r: Resume): string {
   const h = r.header;
-  const head = [h.fullName, h.headline, h.email, h.phone, h.location, h.website, h.linkedin, h.github]
-    .filter(Boolean)
-    .join(" | ");
+  const head = [h.fullName, h.headline, ...contactText(h)].filter(Boolean).join("\n");
   return [head, ...r.sections.filter((s) => s.visible).map(sectionToText)].join("\n\n");
 }
 

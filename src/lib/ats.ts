@@ -1,5 +1,6 @@
 import { SECTION_LABELS as SECTION_TITLES } from "./defaults";
 import { TEMPLATES } from "./defaults";
+import { contactValue, getContacts, safeHref } from "./header";
 import {
   allBullets,
   isEducation,
@@ -100,14 +101,14 @@ export function analyzeResume(resume: Resume, jobDescription?: string): AtsRepor
   // --- Contact information
   add("name", "Name present", "ATS", !!resume.header.fullName.trim(),
     "The resume header has no full name.", "Parsers use the header to identify the candidate.", "Add your full name in the resume header.");
-  add("email", "Email address", "ATS", /\S+@\S+\.\S+/.test(resume.header.email),
+  add("email", "Email address", "ATS", /\S+@\S+\.\S+/.test(contactValue(resume.header, "email")),
     "No valid email address found.", "Recruiters and systems need a reachable email.", "Add a professional email in the header.");
-  add("phone", "Phone number", "ATS", /\d{6,}/.test(resume.header.phone.replace(/\D/g, "")),
+  add("phone", "Phone number", "ATS", /\d{6,}/.test(contactValue(resume.header, "phone").replace(/\D/g, "")),
     "No phone number found.", "Many employers phone-screen before emailing.", "Add a phone number with country code.");
-  add("location", "Location", "Content", !!resume.header.location.trim() ? true : "warn",
+  add("location", "Location", "Content", !!contactValue(resume.header, "location") ? true : "warn",
     "No city or region listed.", "Location filters are common in applicant tracking systems.", "Add at least a city and country.");
   add("links", "Professional links", "Content",
-    !!(resume.header.linkedin || resume.header.website || resume.header.github) ? true : "warn",
+    getContacts(resume.header).some((c) => c.visible && !!safeHref(c.url)) ? true : "warn",
     "No LinkedIn, portfolio or GitHub link.", "Links let reviewers verify your work.", "Add one or more profile links.");
 
   // --- Structure
