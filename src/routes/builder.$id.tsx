@@ -58,6 +58,22 @@ import {
 } from "@/lib/resume-utils";
 import { useAI } from "@/lib/use-ai";
 import { CONTACT_PRESETS, getContacts, headerFromProfile, makeContact } from "@/lib/header";
+import { ChevronRight, MoreVertical } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+const CONTACT_GROUPS = [
+  { label: "Contact", types: ["email", "phone", "location"] },
+  { label: "Professional", types: ["linkedin", "github", "leetcode", "portfolio", "website", "kaggle"] },
+  { label: "Social / creative", types: ["twitter", "behance", "dribbble"] },
+  { label: "Other", types: ["custom-link", "custom"] },
+];
 
 export const Route = createFileRoute("/builder/$id")({
   head: () => ({
@@ -353,7 +369,7 @@ function HeaderEditor({
       [next[i], next[j]] = [next[j]!, next[i]!];
       return next;
     }, true);
-  const [preset, setPreset] = useState("custom-link");
+  const [openId, setOpenId] = useState<string | null>(null);
   const maxRow = Math.max(3, ...contacts.map((c) => c.row + 1));
 
   return (
@@ -362,13 +378,13 @@ function HeaderEditor({
         <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
           Header
         </p>
-        <Button
-          size="sm"
-          variant="ghost"
+        <button
+          type="button"
+          className="text-[11px] font-medium text-primary hover:underline"
           onClick={() => commit((r) => ({ ...r, header: headerFromProfile(profile) }))}
         >
           Pull from profile
-        </Button>
+        </button>
       </div>
       <div className="grid gap-2 sm:grid-cols-2">
         <div>
@@ -393,108 +409,178 @@ function HeaderEditor({
         </div>
       </div>
 
-      <div className="mt-3 flex items-center justify-between">
-        <Label>Contact details &amp; links</Label>
-        <span className="text-[10px] text-muted-foreground">Text · link (optional) · row</span>
+      <div className="mt-4 flex items-center justify-between">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          Contact details
+        </p>
       </div>
       {contacts.length === 0 ? (
-        <p className="mt-1 rounded-lg border border-dashed border-border p-2 text-center text-[11px] text-muted-foreground">
-          No contact details yet — add email, phone or a link below.
+        <p className="mt-1.5 rounded-lg border border-dashed border-border p-3 text-center text-xs text-muted-foreground">
+          Add your contact information and professional links.
         </p>
       ) : null}
-      <div className="mt-1 space-y-1.5">
-        {contacts.map((c) => {
+      <div className="mt-1.5 space-y-1">
+        {contacts.map((c, idx) => {
           const err = headerError(c.type, c.value);
           const preset = CONTACT_PRESETS.find((p) => p.type === c.type);
           const isLink = !!c.url || !!preset?.link;
+          const isCustom = c.type.startsWith("custom");
+          const open = openId === c.id;
+          const name = c.label || preset?.label || "Contact";
+          const sameRow = contacts.filter((x) => x.row === c.row);
+          const pos = sameRow.findIndex((x) => x.id === c.id);
           return (
-            <div key={c.id} className={`rounded-lg bg-card/60 p-1.5 ${c.visible ? "" : "opacity-55"}`}>
-              <div className="flex items-center gap-1">
-                <Input
-                  className="glass-input h-7 w-24 shrink-0 px-2 text-[11px] font-semibold"
-                  placeholder="Label"
-                  aria-label="Field label"
-                  value={c.label}
-                  onChange={(e) => patchContact(c.id, { label: e.target.value })}
-                />
-                <Input
-                  className="glass-input h-7 min-w-0 flex-1 px-2 text-xs"
-                  placeholder="Shown on resume"
-                  aria-label={`${c.label || "Field"} text`}
-                  value={c.value}
-                  onChange={(e) => patchContact(c.id, { value: e.target.value })}
-                />
-                <select
-                  aria-label={`${c.label || "Field"} row`}
-                  className="h-7 rounded-md border border-input bg-card px-1 text-[11px]"
-                  value={c.row}
-                  onChange={(e) => patchContact(c.id, { row: Number(e.target.value) }, true)}
+            <div
+              key={c.id}
+              className={`rounded-lg border border-transparent bg-card/60 transition-colors ${open ? "border-border bg-card/90" : "hover:bg-card/80"}`}
+            >
+              <div className="flex items-center gap-1 pr-1">
+                <button
+                  type="button"
+                  className="flex min-w-0 flex-1 items-center gap-1.5 px-2 py-1.5 text-left"
+                  aria-expanded={open}
+                  onClick={() => setOpenId(open ? null : c.id)}
                 >
-                  {Array.from({ length: maxRow }, (_, i) => i + 1).map((n) => (
-                    <option key={n} value={n}>
-                      Row {n}
-                    </option>
-                  ))}
-                </select>
-                <Button size="sm" variant="ghost" className="size-7 p-0" title="Move up" onClick={() => moveContact(c.id, -1)}>
-                  <ArrowUp className="size-3" />
-                </Button>
-                <Button size="sm" variant="ghost" className="size-7 p-0" title="Move down" onClick={() => moveContact(c.id, 1)}>
-                  <ArrowDown className="size-3" />
-                </Button>
+                  <ChevronRight
+                    className={`size-3.5 shrink-0 text-muted-foreground transition-transform ${open ? "rotate-90" : ""}`}
+                  />
+                  <span className={`min-w-0 flex-1 ${c.visible ? "" : "opacity-50"}`}>
+                    <span className="block truncate text-xs font-medium">{name}</span>
+                    {!open ? (
+                      <span className="block truncate text-[11px] text-muted-foreground">
+                        {c.value || "Not filled in"}
+                        {c.visible ? "" : " · hidden"}
+                      </span>
+                    ) : null}
+                  </span>
+                </button>
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="size-7 p-0"
-                  title={c.visible ? `Hide ${c.label}` : `Show ${c.label}`}
+                  className="size-7 shrink-0 p-0"
+                  title={c.visible ? `Hide ${name}` : `Show ${name}`}
                   onClick={() => patchContact(c.id, { visible: !c.visible }, true)}
                 >
-                  {c.visible ? <Eye className="size-3" /> : <EyeOff className="size-3" />}
+                  {c.visible ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5 text-muted-foreground" />}
                 </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="size-7 p-0"
-                  title={`Delete ${c.label}`}
-                  onClick={() => setContacts((list) => list.filter((x) => x.id !== c.id), true)}
-                >
-                  <Trash2 className="size-3" />
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="sm" variant="ghost" className="size-7 shrink-0 p-0" title={`More options for ${name}`}>
+                      <MoreVertical className="size-3.5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem disabled={pos <= 0} onSelect={() => moveContact(c.id, -1)}>
+                      <ArrowUp className="size-3.5" /> Move up
+                    </DropdownMenuItem>
+                    <DropdownMenuItem disabled={pos >= sameRow.length - 1} onSelect={() => moveContact(c.id, 1)}>
+                      <ArrowDown className="size-3.5" /> Move down
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive"
+                      onSelect={() => setContacts((list) => list.filter((x) => x.id !== c.id), true)}
+                    >
+                      <Trash2 className="size-3.5" /> Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
-              {isLink ? (
-                <Input
-                  className="glass-input mt-1 h-7 px-2 text-[11px]"
-                  placeholder="Link URL (optional), e.g. https://leetcode.com/username"
-                  aria-label={`${c.label || "Field"} URL`}
-                  value={c.url ?? ""}
-                  onChange={(e) => patchContact(c.id, { url: e.target.value || undefined })}
-                />
+              {open ? (
+                <div className="space-y-2 px-2.5 pb-2.5 pt-0.5">
+                  {isCustom ? (
+                    <div>
+                      <Label>Label</Label>
+                      <Input
+                        className="glass-input mt-1 h-8 text-xs"
+                        placeholder="e.g. Certification"
+                        aria-label="Field label"
+                        value={c.label}
+                        onChange={(e) => patchContact(c.id, { label: e.target.value })}
+                      />
+                    </div>
+                  ) : null}
+                  <div>
+                    <Label>{isCustom && !isLink ? "Text" : "Display text"}</Label>
+                    <Input
+                      className="glass-input mt-1 h-8 text-xs"
+                      placeholder="Shown on your resume"
+                      aria-label={`${name} text`}
+                      value={c.value}
+                      onChange={(e) => patchContact(c.id, { value: e.target.value })}
+                    />
+                    {err ? <p className="mt-0.5 text-[11px] text-destructive">{err}</p> : null}
+                  </div>
+                  {isLink ? (
+                    <div>
+                      <Label>Link URL</Label>
+                      <Input
+                        className="glass-input mt-1 h-8 text-xs"
+                        placeholder="https://…"
+                        aria-label={`${name} URL`}
+                        value={c.url ?? ""}
+                        onChange={(e) => patchContact(c.id, { url: e.target.value || undefined })}
+                      />
+                    </div>
+                  ) : null}
+                  <div>
+                    <Label>Appears on</Label>
+                    <select
+                      aria-label={`${name} contact line`}
+                      className="mt-1 block h-8 w-full max-w-[10rem] rounded-md border border-input bg-card px-2 text-xs"
+                      value={c.row}
+                      onChange={(e) => patchContact(c.id, { row: Number(e.target.value) }, true)}
+                    >
+                      {Array.from({ length: maxRow }, (_, i) => i + 1).map((n) => (
+                        <option key={n} value={n}>
+                          Contact line {n}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
               ) : null}
-              {err ? <p className="mt-0.5 text-[11px] text-destructive">{err}</p> : null}
+              {!open && err && idx >= 0 ? (
+                <p className="px-2 pb-1.5 text-[11px] text-destructive">{err}</p>
+              ) : null}
             </div>
           );
         })}
       </div>
-      <div className="mt-2 flex items-center gap-1.5">
-        <select
-          aria-label="Field type to add"
-          className="h-8 flex-1 rounded-md border border-input bg-card px-2 text-xs"
-          value={preset}
-          onChange={(e) => setPreset(e.target.value)}
-        >
-          {CONTACT_PRESETS.map((p) => (
-            <option key={p.type} value={p.type}>
-              {p.label}
-            </option>
-          ))}
-        </select>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => setContacts((list) => [...list, makeContact(preset)], true)}
-        >
-          <Plus className="size-3.5" /> Add field
-        </Button>
+      <div className="mt-2 flex justify-center">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button size="sm" variant="outline">
+              <Plus className="size-3.5" /> Add contact
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="center" className="max-h-80 w-48 overflow-y-auto">
+            {CONTACT_GROUPS.map((g, gi) => (
+              <div key={g.label}>
+                {gi > 0 ? <DropdownMenuSeparator /> : null}
+                <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  {g.label}
+                </DropdownMenuLabel>
+                {g.types.map((t) => {
+                  const p = CONTACT_PRESETS.find((x) => x.type === t);
+                  if (!p) return null;
+                  return (
+                    <DropdownMenuItem
+                      key={t}
+                      onSelect={() => {
+                        const item = makeContact(t);
+                        setContacts((list) => [...list, item], true);
+                        setOpenId(item.id);
+                      }}
+                    >
+                      {p.label}
+                    </DropdownMenuItem>
+                  );
+                })}
+              </div>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
       <div className="mt-3 flex items-center gap-3">
         {resume.header.photo ? (
