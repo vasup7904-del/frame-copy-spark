@@ -236,7 +236,7 @@ function TemplatesPage() {
                 </Button>
               </DialogHeader>
               <div className="max-h-[calc(92vh-80px)] overflow-y-auto bg-muted/40 p-5">
-                <FitPreview resume={previewOf(previewTpl.id)} className="mx-auto max-w-[640px] shadow-lg" />
+                <FitPreview resume={previewOf(previewTpl.id)} className="mx-auto aspect-[210/297] max-w-[640px] shadow-lg" />
               </div>
             </>
           ) : null}
