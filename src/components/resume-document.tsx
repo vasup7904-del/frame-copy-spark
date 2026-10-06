@@ -289,7 +289,7 @@ function Section({
               </div>
               {item.description ? <div style={{ fontSize: "0.95em", marginTop: 2 }}>{item.description}</div> : null}
               {item.bullets.filter(Boolean).length ? (
-                <ul style={{ margin: "3px 0 0", paddingLeft: 16 }}>
+                <ul style={{ margin: "3px 0 0", paddingLeft: 16, listStyle: "disc" }}>
                   {item.bullets.filter(Boolean).map((b, i) => (
                     <li key={i} style={{ marginTop: 1 }}>
                       {b}
@@ -335,7 +335,7 @@ function Section({
                 </div>
               ) : null}
               {item.bullets.filter(Boolean).length ? (
-                <ul style={{ margin: "3px 0 0", paddingLeft: 16 }}>
+                <ul style={{ margin: "3px 0 0", paddingLeft: 16, listStyle: "disc" }}>
                   {item.bullets.filter(Boolean).map((b, i) => (
                     <li key={i}>{b}</li>
                   ))}
