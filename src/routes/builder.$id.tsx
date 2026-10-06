@@ -58,6 +58,22 @@ import {
 } from "@/lib/resume-utils";
 import { useAI } from "@/lib/use-ai";
 import { CONTACT_PRESETS, getContacts, headerFromProfile, makeContact } from "@/lib/header";
+import { createPortal } from "react-dom";
+
+/** Print-only copy of the resume, mounted directly on <body> outside every scroll container. */
+function PrintDocument({ resume }: { resume: Resume }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
+  const letter = resume.design.pageSize === "Letter";
+  return createPortal(
+    <div className="print-document" aria-hidden>
+      <style>{`@media print { @page { size: ${letter ? "letter" : "A4"}; margin: 0; } }`}</style>
+      <ResumeDocument resume={resume} />
+    </div>,
+    document.body,
+  );
+}
 import { ChevronRight, MoreVertical } from "lucide-react";
 import {
   DropdownMenu,
@@ -225,7 +241,7 @@ function Editor() {
           </Tabs>
         </div>
 
-        <div className="min-h-0 overflow-auto rounded-2xl bg-muted/40 p-4">
+        <div className="no-print min-h-0 overflow-auto rounded-2xl bg-muted/40 p-4">
           <div className="flex justify-center">
             <div style={{ width: `calc(210mm * ${zoom})` }}>
               <ResumeDocument resume={resume} scale={zoom} />
@@ -233,6 +249,7 @@ function Editor() {
           </div>
         </div>
       </div>
+      <PrintDocument resume={resume} />
     </div>
   );
 }
