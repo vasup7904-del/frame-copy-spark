@@ -20,6 +20,10 @@ interface Variant {
   headingRule?: "none" | "line" | "bar" | "block";
   headerAlign?: "left" | "center";
   accentName?: boolean;
+  /** put the side column on the right instead of the left */
+  sidebarRight?: boolean;
+  /** section kinds placed in the side column (defaults to SIDEBAR_KINDS) */
+  sidebarKinds?: string[];
 }
 
 const VARIANTS: Record<string, Variant> = {
@@ -33,6 +37,17 @@ const VARIANTS: Record<string, Variant> = {
   circuit: { nameSize: 22, headingRule: "bar", headingCaps: true },
   campus: { nameSize: 23, headingRule: "line" },
   ledger: { nameSize: 24, twoColumn: true, headingCaps: true, headingRule: "line" },
+  classic: { nameSize: 20, headingCaps: true, headingRule: "line" },
+  duo: {
+    nameSize: 24,
+    twoColumn: true,
+    sidebarRight: true,
+    headingCaps: true,
+    headingRule: "bar",
+    accentName: true,
+    sidebarKinds: ["skills", "education", "achievements", "awards", "certifications", "languages", "interests", "courses"],
+  },
+  elegant: { nameSize: 26, serif: true, twoColumn: true, sidebarRight: true, sidebarTint: true, headingRule: "line", headerAlign: "center" },
 };
 
 const SIDEBAR_KINDS = new Set(["skills", "languages", "certifications", "interests", "courses"]);
@@ -52,8 +67,9 @@ export function ResumeDocument({ resume, scale = 1 }: { resume: Resume; scale?: 
   };
 
   const visible = resume.sections.filter((s) => s.visible);
-  const sidebar = v.twoColumn ? visible.filter((s) => SIDEBAR_KINDS.has(s.kind)) : [];
-  const main = v.twoColumn ? visible.filter((s) => !SIDEBAR_KINDS.has(s.kind)) : visible;
+  const side = new Set(v.sidebarKinds ?? SIDEBAR_KINDS);
+  const sidebar = v.twoColumn ? visible.filter((s) => side.has(s.kind)) : [];
+  const main = v.twoColumn ? visible.filter((s) => !side.has(s.kind)) : visible;
 
   return (
     <div
@@ -63,13 +79,15 @@ export function ResumeDocument({ resume, scale = 1 }: { resume: Resume; scale?: 
     >
       <Header resume={resume} v={v} accent={accent} />
       {v.twoColumn ? (
-        <div className="mt-4 flex gap-5">
+        <div className={`mt-4 flex gap-5 ${v.sidebarRight ? "flex-row-reverse" : ""}`}>
           <div
             className="w-[34%] shrink-0"
             style={
               v.sidebarTint
                 ? { background: `${accent}10`, padding: "10px", borderRadius: 6 }
-                : { borderRight: `1px solid ${accent}33`, paddingRight: 14 }
+                : v.sidebarRight
+                  ? { borderLeft: `1px solid ${accent}33`, paddingLeft: 14 }
+                  : { borderRight: `1px solid ${accent}33`, paddingRight: 14 }
             }
           >
             {sidebar.map((s) => (

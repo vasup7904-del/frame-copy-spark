@@ -40,20 +40,25 @@ export const TEMPLATES: {
   id: string;
   name: string;
   category: string;
+  /** every category this template belongs to (filters) */
+  categories: string[];
   description: string;
   atsSafe: boolean;
   columns: 1 | 2;
 }[] = [
-  { id: "atlas", name: "Atlas", category: "ATS", description: "Single column, standard headings, zero graphics.", atsSafe: true, columns: 1 },
-  { id: "meridian", name: "Meridian", category: "Modern", description: "Accent rule headings with airy spacing.", atsSafe: true, columns: 1 },
-  { id: "quartz", name: "Quartz", category: "Minimal", description: "Quiet type, generous white space.", atsSafe: true, columns: 1 },
-  { id: "harbor", name: "Harbor", category: "Professional", description: "Classic corporate layout with clear hierarchy.", atsSafe: true, columns: 1 },
-  { id: "summit", name: "Summit", category: "Executive", description: "Bold name block for senior leadership profiles.", atsSafe: true, columns: 1 },
-  { id: "prism", name: "Prism", category: "Creative", description: "Colour-banded headings with a tinted sidebar.", atsSafe: false, columns: 2 },
-  { id: "lyceum", name: "Lyceum", category: "Academic", description: "Serif type for publications and research.", atsSafe: true, columns: 1 },
-  { id: "circuit", name: "Circuit", category: "Technical", description: "Dense skills matrix for engineering roles.", atsSafe: true, columns: 1 },
-  { id: "campus", name: "Campus", category: "Student", description: "Education-first order for early careers.", atsSafe: true, columns: 1 },
-  { id: "ledger", name: "Ledger", category: "Two-column", description: "Sidebar for contact and skills, main column for history.", atsSafe: false, columns: 2 },
+  { id: "atlas", categories: ["ATS","Technical"], name: "Atlas", category: "ATS", description: "Single column, standard headings, zero graphics.", atsSafe: true, columns: 1 },
+  { id: "meridian", categories: ["Modern"], name: "Meridian", category: "Modern", description: "Accent rule headings with airy spacing.", atsSafe: true, columns: 1 },
+  { id: "quartz", categories: ["Minimal","Modern"], name: "Quartz", category: "Minimal", description: "Quiet type, generous white space.", atsSafe: true, columns: 1 },
+  { id: "harbor", categories: ["Professional","ATS"], name: "Harbor", category: "Professional", description: "Classic corporate layout with clear hierarchy.", atsSafe: true, columns: 1 },
+  { id: "summit", categories: ["Executive","Professional"], name: "Summit", category: "Executive", description: "Bold name block for senior leadership profiles.", atsSafe: true, columns: 1 },
+  { id: "prism", categories: ["Creative","Two-column","Modern"], name: "Prism", category: "Creative", description: "Colour-banded headings with a tinted sidebar.", atsSafe: false, columns: 2 },
+  { id: "lyceum", categories: ["Academic"], name: "Lyceum", category: "Academic", description: "Serif type for publications and research.", atsSafe: true, columns: 1 },
+  { id: "circuit", categories: ["Technical","ATS"], name: "Circuit", category: "Technical", description: "Dense skills matrix for engineering roles.", atsSafe: true, columns: 1 },
+  { id: "campus", categories: ["Student"], name: "Campus", category: "Student", description: "Education-first order for early careers.", atsSafe: true, columns: 1 },
+  { id: "ledger", categories: ["Two-column","Professional"], name: "Ledger", category: "Two-column", description: "Sidebar for contact and skills, main column for history.", atsSafe: false, columns: 2 },
+  { id: "classic", categories: ["ATS", "Professional", "Technical"], name: "Classic ATS", category: "ATS", description: "Conservative single column with strong section hierarchy for software, data and engineering roles.", atsSafe: true, columns: 1 },
+  { id: "duo", categories: ["Two-column", "Modern", "Professional"], name: "Double Column", category: "Two-column", description: "Main column for experience, side column for skills, education and achievements.", atsSafe: false, columns: 2 },
+  { id: "elegant", categories: ["Executive", "Professional", "Two-column"], name: "Elegant", category: "Executive", description: "Refined serif typography, subtle accents and a tinted side panel.", atsSafe: false, columns: 2 },
 ];
 
 export const FONT_OPTIONS = [
